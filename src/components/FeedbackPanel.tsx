@@ -4,6 +4,7 @@ type Props = {
   puzzle: Puzzle;
   playerAnswer: Action;
   wasCorrect: boolean;
+  wasAcceptable: boolean;
   onNext: () => void;
 };
 
@@ -20,40 +21,71 @@ const MISTAKE_LABELS: Record<string, string> = {
   'set-mine-wrong-conditions': 'Set-mined in wrong conditions',
 };
 
-export function FeedbackPanel({ puzzle, playerAnswer, wasCorrect, onNext }: Props) {
+export function FeedbackPanel({ puzzle, playerAnswer, wasCorrect, wasAcceptable, onNext }: Props) {
+  const isBorderline = puzzle.confidence === 'borderline';
+
+  const theme =
+    wasCorrect
+      ? { bg: 'bg-emerald-950', border: 'border-emerald-600', accent: 'text-emerald-400', label: 'Correct!', sub: 'text-emerald-300' }
+      : wasAcceptable
+      ? { bg: 'bg-amber-950', border: 'border-amber-600', accent: 'text-amber-400', label: 'Acceptable', sub: 'text-amber-300' }
+      : { bg: 'bg-rose-950', border: 'border-rose-700', accent: 'text-rose-400', label: 'Wrong', sub: 'text-rose-300' };
+
   return (
-    <div
-      className={`w-full max-w-lg rounded-2xl p-6 space-y-4 border-2 ${
-        wasCorrect
-          ? 'bg-emerald-950 border-emerald-600'
-          : 'bg-rose-950 border-rose-700'
-      }`}
-    >
+    <div className={`w-full max-w-lg rounded-2xl p-6 space-y-4 border-2 ${theme.bg} ${theme.border}`}>
+
       {/* Result header */}
       <div className="flex items-center gap-3">
-        <span className="text-3xl">{wasCorrect ? '✓' : '✗'}</span>
+        <span className="text-3xl">{wasCorrect ? '✓' : wasAcceptable ? '~' : '✗'}</span>
         <div>
-          <div className={`font-bold text-xl ${wasCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>
-            {wasCorrect ? 'Correct!' : 'Wrong'}
-          </div>
-          {!wasCorrect && (
+          <div className={`font-bold text-xl ${theme.accent}`}>{theme.label}</div>
+          {wasCorrect && (
+            <div className={`text-sm ${theme.sub}`}>{puzzle.correctAction}</div>
+          )}
+          {wasAcceptable && (
+            <div className={`text-sm ${theme.sub}`}>
+              You chose <span className="font-semibold text-white">{playerAnswer}</span>
+              {' · '}
+              Best play: <span className="font-semibold text-emerald-300">{puzzle.correctAction}</span>
+            </div>
+          )}
+          {!wasCorrect && !wasAcceptable && (
             <div className="text-sm text-slate-300">
               You chose <span className="font-semibold text-white">{playerAnswer}</span>
               {' · '}
               Correct was <span className="font-semibold text-emerald-300">{puzzle.correctAction}</span>
             </div>
           )}
-          {wasCorrect && (
-            <div className="text-sm text-emerald-300">{puzzle.correctAction}</div>
-          )}
         </div>
       </div>
+
+      {/* Acceptable note */}
+      {wasAcceptable && (
+        <div className="bg-amber-900/40 border border-amber-700 rounded-lg px-3 py-2 text-xs text-amber-200 leading-relaxed">
+          This is a borderline spot. {playerAnswer} is reasonable here, but {puzzle.correctAction} is the stronger play.
+        </div>
+      )}
+
+      {/* Borderline note when correct */}
+      {wasCorrect && isBorderline && (
+        <div className="bg-slate-700/60 border border-slate-500 rounded-lg px-3 py-2 text-xs text-slate-300 leading-relaxed">
+          Close spot — {puzzle.alternativeActions.join(' or ')} is also acceptable depending on stack depth and reads.
+        </div>
+      )}
 
       {/* Explanation */}
       <p className="text-slate-200 text-sm leading-relaxed">{puzzle.explanation}</p>
 
+      {/* Recommended sizing */}
+      {puzzle.recommendedSizing && (
+        <div className="flex items-center gap-2 bg-slate-700/50 rounded-lg px-3 py-2">
+          <span className="text-slate-400 text-xs uppercase tracking-wide">Suggested size</span>
+          <span className="text-white font-semibold text-sm ml-auto">{puzzle.recommendedSizing}</span>
+        </div>
+      )}
+
       {/* Mistake tag */}
-      {!wasCorrect && puzzle.mistakeTag && (
+      {!wasCorrect && !wasAcceptable && puzzle.mistakeTag && (
         <div className="inline-flex items-center gap-2 bg-rose-900/50 border border-rose-700 rounded-lg px-3 py-1.5 text-xs text-rose-300">
           <span>Mistake:</span>
           <span className="font-semibold">{MISTAKE_LABELS[puzzle.mistakeTag] ?? puzzle.mistakeTag}</span>

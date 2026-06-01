@@ -1,4 +1,4 @@
-import type { Action, DecisionInput, Solution, Street } from './types';
+import type { Action, Confidence, DecisionInput, PositionClass, Solution, StackDepth, Street } from './types';
 import { isInOpeningRange } from './openingRanges';
 import {
   isSmallPair,
@@ -145,7 +145,11 @@ function solvePreflop(input: DecisionInput): Solution {
 
   const mistakeTag = deriveMistakeTag(tags, handClass, positionClass, actionContext);
 
-  return { correctAction: action, explanation, tags, mistakeTag, difficulty };
+  const { confidence, alternativeActions } = computeConfidence(action, tags, handCode, stackDepth);
+
+  const recommendedSizing = computeRecommendedSizing(action, actionContext, positionClass, stackDepth);
+
+  return { correctAction: action, confidence, alternativeActions, recommendedSizing, explanation, tags, mistakeTag, difficulty };
 }
 
 function computeDifficulty(input: DecisionInput, action: Action, tags: string[]): 1 | 2 | 3 | 4 | 5 {
@@ -176,5 +180,57 @@ function deriveMistakeTag(
   if (handClass === 'trap' && (positionClass === 'early' || positionClass === 'middle')) return 'played-too-loose-early';
   if (tags.includes('big-blind-defense')) return 'failed-to-defend-big-blind';
   if (tags.includes('three-bet-discipline')) return 'wrong-three-bet-spot';
+  return null;
+}
+
+function computeConfidence(
+  action: Action,
+  tags: string[],
+  handCode: string,
+  stackDepth: StackDepth,
+): { confidence: Confidence; alternativeActions: Action[] } {
+  const isSmallPairHand = ['22', '33', '44', '55', '66'].includes(handCode);
+
+  // JJ/AQs calling a 3-bet — folding is also reasonable depending on stack/read
+  if (tags.includes('three-bet-discipline') && action === 'Call') {
+    return { confidence: 'borderline', alternativeActions: ['Fold'] };
+  }
+  // TT calling a tight early raise (late position, deep) — fold is also acceptable
+  if (tags.includes('respect-tight-raise') && action === 'Call') {
+    return { confidence: 'borderline', alternativeActions: ['Fold'] };
+  }
+  // Small pair BB defense — marginal call, folding is also fine
+  if (tags.includes('big-blind-defense') && isSmallPairHand) {
+    return { confidence: 'borderline', alternativeActions: ['Fold'] };
+  }
+
+  return { confidence: 'clear', alternativeActions: [] };
+}
+
+function computeRecommendedSizing(
+  action: Action,
+  actionContext: string,
+  positionClass: PositionClass,
+  stackDepth: StackDepth,
+): string | null {
+  if (action === 'Fold' || action === 'Call' || action === 'Check') return null;
+
+  if (action === 'Raise') {
+    if (stackDepth === 'short') return '2–2.5bb';
+    if (actionContext === 'one-limper') return '4bb';
+    if (actionContext === 'multiple-limpers') return '5bb+';
+    // folded-to-hero open
+    return positionClass === 'late' || positionClass === 'small-blind' ? '2.5bb' : '3bb';
+  }
+
+  if (action === 'Re-raise') {
+    // 4-bet facing a 3-bet
+    if (actionContext === 'three-bet-before-hero') return 'Jam or 2.5× the 3-bet';
+    // 3-bet facing a single raise
+    return positionClass === 'late' || positionClass === 'small-blind'
+      ? '~9bb (3× the raise)'
+      : '~12bb (4× the raise)';
+  }
+
   return null;
 }

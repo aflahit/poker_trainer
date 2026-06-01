@@ -89,6 +89,9 @@ export type Puzzle = {
   potSize: number;
   availableActions: Action[];
   correctAction: Action;
+  confidence: Confidence;
+  alternativeActions: Action[];
+  recommendedSizing: string | null;
   explanation: string;
   tags: string[];
   mistakeTag: MistakeTag | null;
@@ -96,8 +99,13 @@ export type Puzzle = {
   theme: PuzzleTheme;
 };
 
+export type Confidence = 'clear' | 'borderline';
+
 export type Solution = {
   correctAction: Action;
+  confidence: Confidence;
+  alternativeActions: Action[];
+  recommendedSizing: string | null;
   explanation: string;
   tags: string[];
   mistakeTag: MistakeTag | null;

@@ -7,7 +7,7 @@ import { FeedbackPanel } from './components/FeedbackPanel';
 
 export default function App() {
   const { state, startGame, submitAnswer, nextPuzzle } = useGameStore();
-  const { phase, puzzle, lastAnswer, wasCorrect, stats } = state;
+  const { phase, puzzle, lastAnswer, wasCorrect, wasAcceptable, stats } = state;
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center py-6 px-4 gap-5">
@@ -63,6 +63,7 @@ export default function App() {
                 puzzle={puzzle}
                 playerAnswer={lastAnswer}
                 wasCorrect={wasCorrect}
+                wasAcceptable={wasAcceptable ?? false}
                 onNext={nextPuzzle}
               />
             )}

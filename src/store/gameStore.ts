@@ -10,6 +10,7 @@ export type GameState = {
   puzzle: Puzzle | null;
   lastAnswer: Action | null;
   wasCorrect: boolean | null;
+  wasAcceptable: boolean | null; // borderline spot where player chose an alternative action
   stats: GameStats;
 };
 
@@ -19,6 +20,7 @@ export function useGameStore() {
     puzzle: null,
     lastAnswer: null,
     wasCorrect: null,
+    wasAcceptable: null,
     stats: initialStats(),
   });
 
@@ -37,12 +39,14 @@ export function useGameStore() {
     setState(prev => {
       if (!prev.puzzle) return prev;
       const correct = action === prev.puzzle.correctAction;
+      const acceptable = !correct && prev.puzzle.alternativeActions.includes(action);
       const newStats = updateStats(prev.stats, prev.puzzle, correct);
       return {
         ...prev,
         phase: 'feedback',
         lastAnswer: action,
         wasCorrect: correct,
+        wasAcceptable: acceptable,
         stats: newStats,
       };
     });
@@ -56,6 +60,7 @@ export function useGameStore() {
       puzzle,
       lastAnswer: null,
       wasCorrect: null,
+      wasAcceptable: null,
     }));
   }, []);
 
