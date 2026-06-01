@@ -3,8 +3,6 @@ import type {
   StackDepth, Puzzle, PuzzleTheme, Street, Action,
 } from './types';
 import { MIN_PLAYER_COUNT, POSITIONS_BY_COUNT } from './tableUtils';
-import { dealCards } from './cards';
-import { normalizeHand } from './handNormalizer';
 import { classifyHand } from './handClassifier';
 import { classifyPosition } from './positionClassifier';
 import { solve } from './strategyEngine';
@@ -17,11 +15,6 @@ const OPPONENT_TYPES: OpponentType[] = [
   'unknown', 'tight', 'loose-passive', 'loose-aggressive', 'maniac', 'calling-station',
 ];
 
-const PREVIOUS_ACTIONS: PreviousAction[] = [
-  'folded-to-hero', 'one-limper', 'multiple-limpers',
-  'early-raise', 'middle-raise', 'late-raise',
-  'raise-and-callers', 'three-bet-before-hero',
-];
 
 const STACK_DEPTHS: StackDepth[] = ['short', 'medium', 'deep'];
 
@@ -165,7 +158,7 @@ function generatePreflopPuzzle(): Puzzle {
   // Filter previousActions to those logically valid for this seat's position index
   const heroIdx = (POSITIONS_BY_COUNT[playerCount] ?? []).indexOf(heroPosition);
   const validActions = previousActions.filter(a => isPreviousActionValid(a, heroIdx));
-  const previousAction = pick(validActions.length > 0 ? validActions : ['folded-to-hero']);
+  const previousAction = pick<PreviousAction>(validActions.length > 0 ? validActions : ['folded-to-hero']);
 
   // Pick hole cards from theme hand pool, then deal actual suited/offsuit cards
   const handPool = THEME_HANDS[theme];
@@ -175,7 +168,7 @@ function generatePreflopPuzzle(): Puzzle {
   const positionClass = classifyPosition(heroPosition);
   const handClass = classifyHand(handCode);
 
-  const potSize = computePotSize(previousAction, playerCount, { small: 100, big: 200 });
+  const potSize = computePotSize(previousAction, { small: 100, big: 200 });
 
   const availableActions = buildPreflopAvailableActions(previousAction);
 
@@ -219,7 +212,6 @@ function generatePreflopPuzzle(): Puzzle {
 
 // Convert hand code (e.g. "AKs", "QQ", "98o") to actual Card objects
 function dealHandFromCode(handCode: string): [Card, Card] {
-  const ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'] as const;
   const suits = ['s', 'h', 'd', 'c'] as const;
 
   if (handCode.length === 2) {
@@ -246,7 +238,6 @@ function dealHandFromCode(handCode: string): [Card, Card] {
 
 function computePotSize(
   previousAction: PreviousAction,
-  playerCount: number,
   blinds: { small: number; big: number },
 ): number {
   const bb = blinds.big;

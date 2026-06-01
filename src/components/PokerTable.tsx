@@ -1,7 +1,7 @@
 import type { Puzzle } from '../poker/types';
 import type { SeatInfo, SeatStatus } from '../poker/tableUtils';
 import { buildTableSeats } from '../poker/tableUtils';
-import { cardDisplay, suitColor } from '../poker/cards';
+import { suitColor } from '../poker/cards';
 
 type Props = { puzzle: Puzzle };
 
@@ -41,7 +41,7 @@ const STATUS_BADGE: Record<SeatStatus, { icon: string; label: string; color: str
   waiting: { icon: '…', label: '', color: 'text-slate-500' },
 };
 
-function SeatChip({ seat, puzzle }: { seat: SeatInfo; puzzle: Puzzle }) {
+function SeatChip({ seat }: { seat: SeatInfo }) {
   const badge = STATUS_BADGE[seat.status];
 
   return (
@@ -153,7 +153,7 @@ export function PokerTable({ puzzle }: Props) {
                 transform: 'translate(-50%, -50%)',
               }}
             >
-              <SeatChip seat={seat} puzzle={puzzle} />
+              <SeatChip seat={seat} />
             </div>
           );
         })}

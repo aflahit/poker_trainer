@@ -1,5 +1,5 @@
 import type { Card } from '../poker/types';
-import { cardDisplay, suitColor } from '../poker/cards';
+import { suitColor } from '../poker/cards';
 
 type Props = { card: Card; size?: 'sm' | 'md' | 'lg' };
 

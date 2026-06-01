@@ -145,7 +145,7 @@ function solvePreflop(input: DecisionInput): Solution {
 
   const mistakeTag = deriveMistakeTag(tags, handClass, positionClass, actionContext);
 
-  const { confidence, alternativeActions } = computeConfidence(action, tags, handCode, stackDepth);
+  const { confidence, alternativeActions } = computeConfidence(action, tags, handCode);
 
   const recommendedSizing = computeRecommendedSizing(action, actionContext, positionClass, stackDepth);
 
@@ -187,7 +187,6 @@ function computeConfidence(
   action: Action,
   tags: string[],
   handCode: string,
-  stackDepth: StackDepth,
 ): { confidence: Confidence; alternativeActions: Action[] } {
   const isSmallPairHand = ['22', '33', '44', '55', '66'].includes(handCode);
 
