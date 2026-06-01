@@ -88,7 +88,8 @@ export function classifyMadeHand(heroCards: [Card, Card], flop: [Card, Card, Car
   const kicker = topPairKicker(heroCards, flop);
   if (kicker !== null) {
     const board = classifyBoardTexture(flop);
-    if (isTopKicker(kicker) && (board === 'dry' || board === 'semi-wet')) return 'strong-made-hand';
+    // TPTK (A/K/Q/J kicker) bets for value and charges draws on all but very-wet boards
+    if (isTopKicker(kicker) && board !== 'very-wet') return 'strong-made-hand';
     if (isGoodKicker(kicker) && board === 'dry') return 'strong-made-hand';
     return 'medium-made-hand';
   }
