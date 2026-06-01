@@ -110,12 +110,13 @@ export function PokerTable({ puzzle }: Props) {
 
   // Table container dimensions (px) — used for positioning math
   const W = 480;
-  const H = 260;
+  const H = 300;
   const cx = W / 2;
   const cy = H / 2;
-  // Ellipse radii for seat center positions (leave margin for 60px wide seats)
-  const rx = W * 0.42;
-  const ry = H * 0.40;
+  // Seat radii: rx pulled in so edge chips don't clip on narrow screens;
+  // ry gives enough vertical clearance for the 70px-tall hero chip at the bottom
+  const rx = W * 0.40;
+  const ry = H * 0.36;
 
   return (
     <div className="w-full flex flex-col items-center">
