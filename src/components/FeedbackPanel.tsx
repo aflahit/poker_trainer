@@ -5,10 +5,12 @@ type Props = {
   playerAnswer: Action;
   wasCorrect: boolean;
   wasAcceptable: boolean;
+  flopJustUnlocked?: boolean;
   onNext: () => void;
 };
 
 const MISTAKE_LABELS: Record<string, string> = {
+  // preflop
   'played-dominated-hand': 'Played a dominated hand',
   'overvalued-suited-junk': 'Overvalued suited cards',
   'failed-to-raise-premium': 'Failed to raise a premium hand',
@@ -19,9 +21,17 @@ const MISTAKE_LABELS: Record<string, string> = {
   'wrong-three-bet-spot': 'Wrong three-bet spot',
   'ignored-position': 'Ignored position',
   'set-mine-wrong-conditions': 'Set-mined in wrong conditions',
+  // flop
+  'overplayed-weak-top-pair': 'Overplayed weak top pair',
+  'bluffed-calling-station': 'Bluffed a calling station',
+  'chased-weak-draw': 'Chased a weak draw',
+  'missed-value-bet': 'Missed a value bet',
+  'folded-strong-draw': 'Folded a strong draw',
+  'ignored-passive-aggression': 'Ignored passive-player aggression',
+  'married-one-pair': 'Got married to one pair',
 };
 
-export function FeedbackPanel({ puzzle, playerAnswer, wasCorrect, wasAcceptable, onNext }: Props) {
+export function FeedbackPanel({ puzzle, playerAnswer, wasCorrect, wasAcceptable, flopJustUnlocked, onNext }: Props) {
   const isBorderline = puzzle.confidence === 'borderline';
 
   const theme =
@@ -33,6 +43,13 @@ export function FeedbackPanel({ puzzle, playerAnswer, wasCorrect, wasAcceptable,
 
   return (
     <div className={`w-full max-w-lg rounded-2xl p-6 space-y-4 border-2 ${theme.bg} ${theme.border}`}>
+      {/* Phase unlock banner */}
+      {flopJustUnlocked && (
+        <div className="bg-purple-900/60 border border-purple-500 rounded-xl px-4 py-3 text-center space-y-1">
+          <div className="text-purple-300 font-bold text-base">Phase 2 Unlocked: Flop Training</div>
+          <div className="text-purple-400 text-xs">90%+ accuracy on 10+ hands — your next puzzle will be a flop decision.</div>
+        </div>
+      )}
 
       {/* Result header */}
       <div className="flex items-center gap-3">
@@ -107,9 +124,13 @@ export function FeedbackPanel({ puzzle, playerAnswer, wasCorrect, wasAcceptable,
       {/* Next button */}
       <button
         onClick={onNext}
-        className="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl transition-colors border border-slate-500"
+        className={`w-full font-semibold py-3 rounded-xl transition-colors border ${
+          flopJustUnlocked
+            ? 'bg-purple-700 hover:bg-purple-600 border-purple-500 text-white'
+            : 'bg-slate-700 hover:bg-slate-600 border-slate-500 text-white'
+        }`}
       >
-        Next hand →
+        {flopJustUnlocked ? 'Start Flop Training →' : 'Next hand →'}
       </button>
     </div>
   );

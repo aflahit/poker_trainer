@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Puzzle, OpponentType, PreviousAction, Position } from '../poker/types';
+import type { Puzzle, OpponentType, PreviousAction, Position, OpponentFlopAction, PreflopRole } from '../poker/types';
 import { CardDisplay } from './CardDisplay';
 import { POSITIONS_BY_COUNT } from '../poker/tableUtils';
 
@@ -77,35 +77,86 @@ const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
   5: { label: 'Expert', color: 'text-red-400' },
 };
 
+const FLOP_ACTION_LABELS: Record<OpponentFlopAction, string> = {
+  'checks-to-hero': 'Opponent checks',
+  'bets-small': 'Opponent bets small (~25%)',
+  'bets-half-pot': 'Opponent bets half pot',
+  'bets-big': 'Opponent bets big (75%+)',
+  'raises-hero-bet': 'Opponent raises your bet',
+  'check-raises': 'Opponent check-raises',
+};
+
+const PREFLOP_ROLE_LABELS: Record<PreflopRole, string> = {
+  'preflop-raiser': 'Pre-flop raiser',
+  'preflop-caller': 'Pre-flop caller',
+  'blind-defender': 'Blind defender',
+  'limped-pot': 'Limped pot',
+};
+
 export function SituationPanel({ puzzle }: Props) {
   const diff = DIFFICULTY_LABELS[puzzle.difficulty];
+  const isFlop = puzzle.street === 'flop';
 
   return (
     <div className="bg-slate-800 rounded-2xl p-5 space-y-4 w-full">
       <div className="flex items-center justify-between">
-        <span className="text-slate-400 text-sm">Pre-flop · {puzzle.playerCount} players</span>
+        <span className="text-slate-400 text-sm">
+          {isFlop ? 'Flop · Heads-up' : `Pre-flop · ${puzzle.playerCount} players`}
+        </span>
         <span className={`text-xs font-semibold ${diff.color}`}>{diff.label}</span>
       </div>
 
+      {/* Hero cards */}
       <div className="flex gap-3 justify-center">
         {puzzle.heroCards.map((card, i) => (
           <CardDisplay key={i} card={card} size="lg" />
         ))}
       </div>
 
+      {/* Flop board cards */}
+      {isFlop && puzzle.boardCards.length === 3 && (
+        <div>
+          <div className="text-slate-400 text-xs uppercase tracking-widest mb-2 text-center">The Flop</div>
+          <div className="flex gap-2 justify-center">
+            {puzzle.boardCards.map((card, i) => (
+              <CardDisplay key={i} card={card} size="lg" />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <SituationRow label="Your position" value={puzzle.heroPosition} />
-        <SituationRow label="Stack depth" value={STACK_LABELS[puzzle.stackDepth]} />
-        <SituationRow
-          label="Action before you"
-          value={getActionLabel(puzzle.previousAction, puzzle.heroPosition, puzzle.playerCount)}
-          span
-        />
-        {puzzle.opponentType !== 'unknown' && (
-          <OpponentRow opponentType={puzzle.opponentType} />
+        {isFlop ? (
+          <>
+            <SituationRow label="Your position" value={puzzle.isHeroInPosition ? 'In position' : 'Out of position'} />
+            <SituationRow label="Stack depth" value={STACK_LABELS[puzzle.stackDepth]} />
+            <SituationRow label="Pre-flop role" value={puzzle.preflopRole ? PREFLOP_ROLE_LABELS[puzzle.preflopRole] : '—'} />
+            <SituationRow label="Pot size" value={`${puzzle.potSize.toLocaleString()} chips`} />
+            <SituationRow
+              label="Opponent action"
+              value={puzzle.opponentFlopAction ? FLOP_ACTION_LABELS[puzzle.opponentFlopAction] : '—'}
+              span
+            />
+            {puzzle.opponentType !== 'unknown' && (
+              <OpponentRow opponentType={puzzle.opponentType} />
+            )}
+          </>
+        ) : (
+          <>
+            <SituationRow label="Your position" value={puzzle.heroPosition} />
+            <SituationRow label="Stack depth" value={STACK_LABELS[puzzle.stackDepth]} />
+            <SituationRow
+              label="Action before you"
+              value={getActionLabel(puzzle.previousAction, puzzle.heroPosition, puzzle.playerCount)}
+              span
+            />
+            {puzzle.opponentType !== 'unknown' && (
+              <OpponentRow opponentType={puzzle.opponentType} />
+            )}
+            <SituationRow label="Pot size" value={`${puzzle.potSize.toLocaleString()} chips`} />
+            <SituationRow label="Blinds" value={`${puzzle.blinds.small} / ${puzzle.blinds.big}`} />
+          </>
         )}
-        <SituationRow label="Pot size" value={`${puzzle.potSize.toLocaleString()} chips`} />
-        <SituationRow label="Blinds" value={`${puzzle.blinds.small} / ${puzzle.blinds.big}`} />
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 import type {
   Card, Position, OpponentType, PreviousAction,
-  StackDepth, Puzzle, PuzzleTheme, Street, Action,
+  StackDepth, Puzzle, PreflopPuzzleTheme, Street, Action,
 } from './types';
 import { MIN_PLAYER_COUNT, POSITIONS_BY_COUNT } from './tableUtils';
 import { classifyHand } from './handClassifier';
 import { classifyPosition } from './positionClassifier';
 import { solve } from './strategyEngine';
+import { generateFlopPuzzle } from './flopPuzzleGenerator';
 
 const POSITIONS: Position[] = [
   'UTG', 'UTG+1', 'Middle', 'Hijack', 'Cutoff', 'Button', 'Small Blind', 'Big Blind',
@@ -19,7 +20,7 @@ const OPPONENT_TYPES: OpponentType[] = [
 const STACK_DEPTHS: StackDepth[] = ['short', 'medium', 'deep'];
 
 // Weighted theme selection
-const THEME_WEIGHTS: Record<PuzzleTheme, number> = {
+const THEME_WEIGHTS: Record<PreflopPuzzleTheme, number> = {
   'premium-open': 10,
   'trap-hand-fold': 18,
   'late-position-steal': 12,
@@ -48,7 +49,7 @@ function pick<T>(arr: T[]): T {
 }
 
 // Hand pools per theme
-const THEME_HANDS: Record<PuzzleTheme, string[]> = {
+const THEME_HANDS: Record<PreflopPuzzleTheme, string[]> = {
   'premium-open': ['AA', 'KK', 'QQ', 'JJ', 'TT', 'AKs', 'AKo', 'AQs'],
   'trap-hand-fold': ['A7o', 'A6o', 'A5o', 'A4o', 'A3o', 'A2o', 'KJo', 'KTo', 'QTo', 'JTo', 'K9o', 'Q9o'],
   'late-position-steal': ['A5s', 'A4s', 'A3s', 'K9s', 'QTs', 'J9s', 'T9s', '98s', '87s', '65s', 'KJo'],
@@ -69,7 +70,7 @@ type ThemeConstraints = {
   opponentTypes?: OpponentType[];
 };
 
-const THEME_CONSTRAINTS: Record<PuzzleTheme, ThemeConstraints> = {
+const THEME_CONSTRAINTS: Record<PreflopPuzzleTheme, ThemeConstraints> = {
   'premium-open': {
     previousActions: ['folded-to-hero'],
   },
@@ -132,9 +133,8 @@ function buildPreflopAvailableActions(previousAction: PreviousAction): Action[] 
 let puzzleCounter = 0;
 
 export function generatePuzzle(street: Street = 'preflop'): Puzzle {
-  if (street !== 'preflop') {
-    throw new Error(`Generator for ${street} not yet implemented`);
-  }
+  if (street === 'flop') return generateFlopPuzzle();
+  if (street !== 'preflop') throw new Error(`Generator for ${street} not yet implemented`);
   return generatePreflopPuzzle();
 }
 

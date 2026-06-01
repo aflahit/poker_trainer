@@ -7,14 +7,17 @@ import { FeedbackPanel } from './components/FeedbackPanel';
 
 export default function App() {
   const { state, startGame, submitAnswer, nextPuzzle } = useGameStore();
-  const { phase, puzzle, lastAnswer, wasCorrect, wasAcceptable, stats } = state;
+  const { phase, trainingPhase, flopUnlocked, puzzle, lastAnswer, wasCorrect, wasAcceptable, stats } = state;
+  const flopJustUnlocked = flopUnlocked && trainingPhase === 'preflop';
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center py-6 px-4 gap-5">
       {/* Title */}
       <div className="text-center">
         <h1 className="text-2xl font-bold text-white tracking-tight">Texas Hold'em Trainer</h1>
-        <p className="text-slate-400 text-sm mt-0.5">Pre-flop decision drills</p>
+        <p className="text-slate-400 text-sm mt-0.5">
+          {trainingPhase === 'flop' ? 'Flop decision drills' : 'Pre-flop decision drills'}
+        </p>
       </div>
 
       {/* Stats bar */}
@@ -39,13 +42,15 @@ export default function App() {
       {puzzle && (phase === 'answering' || phase === 'feedback') && (
         <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-5 items-start">
 
-          {/* Left column — poker table */}
-          <div className="w-full lg:w-[480px] lg:flex-shrink-0 bg-slate-800 rounded-2xl p-2 sm:p-4">
-            <div className="text-slate-400 text-xs uppercase tracking-widest mb-3 text-center">
-              Table View · {puzzle.playerCount} players
+          {/* Left column — poker table (preflop only) */}
+          {puzzle.street === 'preflop' && (
+            <div className="w-full lg:w-[480px] lg:flex-shrink-0 bg-slate-800 rounded-2xl p-2 sm:p-4">
+              <div className="text-slate-400 text-xs uppercase tracking-widest mb-3 text-center">
+                Table View · {puzzle.playerCount} players
+              </div>
+              <PokerTable puzzle={puzzle} />
             </div>
-            <PokerTable puzzle={puzzle} />
-          </div>
+          )}
 
           {/* Right column — cards, info, actions */}
           <div className="w-full flex-1 flex flex-col gap-4 min-w-0">
@@ -64,6 +69,7 @@ export default function App() {
                 playerAnswer={lastAnswer}
                 wasCorrect={wasCorrect}
                 wasAcceptable={wasAcceptable ?? false}
+                flopJustUnlocked={flopJustUnlocked}
                 onNext={nextPuzzle}
               />
             )}

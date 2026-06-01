@@ -13,6 +13,9 @@ const ACTION_STYLES: Record<Action, string> = {
   Bet: 'bg-emerald-700 hover:bg-emerald-600 border-emerald-500',
   Raise: 'bg-emerald-700 hover:bg-emerald-600 border-emerald-500',
   'Re-raise': 'bg-rose-700 hover:bg-rose-600 border-rose-500',
+  'Bet Small': 'bg-teal-700 hover:bg-teal-600 border-teal-500',
+  'Bet Medium': 'bg-emerald-700 hover:bg-emerald-600 border-emerald-500',
+  'Bet Big': 'bg-orange-700 hover:bg-orange-600 border-orange-500',
 };
 
 export function ActionButtons({ available, onSelect, disabled }: Props) {
