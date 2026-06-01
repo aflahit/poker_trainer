@@ -40,7 +40,7 @@ export default function App() {
         <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-5 items-start">
 
           {/* Left column — poker table */}
-          <div className="w-full lg:w-[480px] lg:flex-shrink-0 bg-slate-800 rounded-2xl p-4">
+          <div className="w-full lg:w-[480px] lg:flex-shrink-0 bg-slate-800 rounded-2xl p-2 sm:p-4">
             <div className="text-slate-400 text-xs uppercase tracking-widest mb-3 text-center">
               Table View · {puzzle.playerCount} players
             </div>

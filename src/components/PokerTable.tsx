@@ -121,7 +121,7 @@ export function PokerTable({ puzzle }: Props) {
     <div className="w-full flex flex-col items-center">
       {/* Table wrapper — fixed aspect, responsive via max-width */}
       <div
-        className="relative w-full"
+        className="relative w-full overflow-hidden"
         style={{ maxWidth: W, aspectRatio: `${W} / ${H}` }}
       >
         {/* Felt oval */}
